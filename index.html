@@ -5,15 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>에빙하우스 망각곡선 AI 영단어장</title>
   
-  <!-- PWA 지원 메타 태그 & 매니페스트 링크 -->
+  <!-- PWA 메타 태그 -->
   <meta name="theme-color" content="#4f46e5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link id="manifest-link" rel="manifest">
   
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
@@ -35,43 +34,52 @@
         <i class="fa-solid fa-brain text-2xl text-amber-300"></i>
         <div>
           <h1 class="text-lg font-bold tracking-tight leading-tight">에빙하우스 AI 영단어장</h1>
-          <!-- 사용자 ID 표시 -->
           <p class="text-[11px] text-indigo-200 flex items-center">
-            <i class="fa-solid fa-user-circle mr-1"></i> ID: <span id="user-id-display" class="font-mono ml-0.5 font-semibold text-white">loading...</span>
+            <i class="fa-solid fa-id-card mr-1"></i> ID: <span id="user-id-display" class="font-bold text-white ml-1"></span>
           </p>
         </div>
       </div>
-      <div class="flex items-center space-x-2">
+      
+      <div class="flex items-center space-x-1.5">
         <!-- PWA 설치 버튼 -->
         <button id="btn-pwa-install" onclick="installPWA()" class="hidden text-xs bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-2.5 py-1.5 rounded-lg transition shadow-sm animate-pulse flex items-center space-x-1">
           <i class="fa-solid fa-download"></i>
           <span>앱 설치</span>
         </button>
-        <!-- 사용설명서 버튼 (우측 상단 위치) -->
-        <button onclick="toggleManualModal()" class="text-xs bg-indigo-500 hover:bg-indigo-400 font-semibold px-3 py-1.5 rounded-lg transition flex items-center space-x-1 shadow-sm">
+        <!-- 사용설명서 버튼 -->
+        <button onclick="toggleManualModal()" class="text-xs bg-indigo-500 hover:bg-indigo-400 font-semibold px-2.5 py-1.5 rounded-lg transition flex items-center space-x-1 shadow-sm">
           <i class="fa-solid fa-book-open"></i>
-          <span>사용설명서</span>
+          <span>설명서</span>
+        </button>
+        <!-- API 설정 버튼 (Gemini Key & URL 설정) -->
+        <button onclick="toggleApiModal()" class="text-xs bg-indigo-700 hover:bg-indigo-800 font-semibold px-2.5 py-1.5 rounded-lg transition flex items-center space-x-1 shadow-sm border border-indigo-400/30">
+          <i class="fa-solid fa-gear"></i>
+          <span>설정</span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- 메인 영단어장 앱 콘텐츠 -->
   <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full">
 
-    <!-- 오프라인 알림 바너 -->
+    <!-- 오프라인 상태 알림 -->
     <div id="offline-warning" class="hidden mb-6 bg-slate-800 text-white p-3 rounded-xl shadow-md flex items-center space-x-2 text-xs">
       <i class="fa-solid fa-wifi text-amber-400"></i>
-      <span>현재 오프라인 상태입니다. 저장된 단어 데이터는 오프라인 캐시를 통해 확인 가능합니다.</span>
+      <span>현재 오프라인 상태입니다. 오프라인 캐시 데이터를 표시합니다.</span>
     </div>
 
-    <!-- GAS URL 미설정 시 경고 바너 -->
+    <!-- Apps Script URL 미설정 알림 경고 바너 -->
     <div id="api-missing-warning" class="hidden mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
-      <div class="flex items-start">
-        <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg mr-3 mt-0.5"></i>
-        <div class="text-xs text-amber-700">
-          <p class="font-bold mb-0.5">백엔드 API URL이 설정되지 않았습니다!</p>
-          <p>코드 상단의 <code class="bg-amber-100 px-1 py-0.5 rounded text-amber-900">DEFAULT_API_URL</code> 변수에 구글 앱스 스크립트 웹 앱 URL을 지정해 주세요.</p>
+      <div class="flex items-start justify-between">
+        <div class="flex items-start space-x-3">
+          <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg mt-0.5"></i>
+          <div class="text-xs text-amber-800">
+            <p class="font-bold mb-0.5">Google Apps Script 배포 URL이 설정되지 않았습니다!</p>
+            <p>코드 내 <b>DEFAULT_API_URL</b>을 수정하거나 우측 상단 <b>[⚙️ 설정]</b> 버튼을 눌러 URL을 입력해 주세요.</p>
+          </div>
         </div>
+        <button onclick="toggleApiModal()" class="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1 rounded-lg shadow">설정하기</button>
       </div>
     </div>
 
@@ -92,7 +100,7 @@
     <section id="tab-quiz" class="space-y-6">
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 text-center">
         <h2 class="text-base font-bold text-slate-800 mb-1">🧠 에빙하우스 망각곡선 맞춤 퀴즈</h2>
-        <p class="text-xs text-slate-500">카드를 눌러 뜻과 AI 예문/유의어를 확인하고 복습 결과를 기록하세요.</p>
+        <p class="text-xs text-slate-500">카드를 눌러 뜻과 AI 정보를 확인하고 복습 결과를 제출하세요.</p>
       </div>
 
       <!-- 퀴즈 카드 영역 -->
@@ -103,7 +111,7 @@
             <!-- 앞면: 영어 단어 -->
             <div class="card-front absolute inset-0 flex flex-col justify-center items-center p-6 rounded-2xl bg-indigo-50 border-2 border-indigo-200">
               <span id="quiz-stage-badge" class="absolute top-4 left-4 bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">1단계</span>
-              <p class="text-xs text-slate-400 mb-2">카드를 클릭하여 뜻과 AI 정보를 확인하세요</p>
+              <p class="text-xs text-slate-400 mb-2">카드를 터치하여 뜻과 AI 정보를 확인하세요</p>
               <h3 id="quiz-word" class="text-4xl font-extrabold text-indigo-900 tracking-wide">Word</h3>
             </div>
             
@@ -163,7 +171,7 @@
           </h2>
           <button type="button" onclick="generateAIContent()" class="text-xs bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 py-1.5 rounded-lg shadow-sm transition flex items-center space-x-1">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>AI 예문/유의어 자동생성</span>
+            <span>✨ AI 예문/유의어 자동생성</span>
           </button>
         </div>
 
@@ -221,10 +229,9 @@
 
   </main>
 
-  <!-- 📖 사용설명서 모달 (User Manual Modal) -->
+  <!-- 📖 사용설명서 모달 -->
   <div id="manual-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-      <!-- 헤더 -->
       <div class="bg-indigo-600 text-white p-4 flex justify-between items-center">
         <h3 class="text-base font-bold flex items-center">
           <i class="fa-solid fa-book-open mr-2"></i> 에빙하우스 AI 영단어장 사용설명서
@@ -234,72 +241,72 @@
         </button>
       </div>
       
-      <!-- 내용 (스크롤 가능) -->
       <div class="p-5 overflow-y-auto space-y-5 text-xs text-slate-700 leading-relaxed">
-        
-        <!-- 1. 복습 주기 -->
         <div>
           <h4 class="font-bold text-sm text-indigo-900 mb-1 flex items-center">
             <span class="bg-indigo-100 text-indigo-700 rounded-full w-5 h-5 flex items-center justify-center text-[11px] mr-1.5">1</span>
-            에빙하우스 망각곡선 주기 알고리즘
+            에빙하우스 망각곡선 복습 주기
           </h4>
-          <p class="text-slate-600 mb-2">학습 후 기억이 급격히 감소하는 시점에 맞춰 총 5단계의 복습 퀴즈를 자동으로 제공합니다.</p>
           <ul class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1 text-[11px] font-medium text-slate-600">
-            <li>• <b>1단계</b>: 최초 등록 후 <b>10분 뒤</b> 복습</li>
-            <li>• <b>2단계</b>: 정답 시 <b>1일 뒤</b> 복습</li>
-            <li>• <b>3단계</b>: 정답 시 <b>3일 뒤</b> 복습</li>
-            <li>• <b>4단계</b>: 정답 시 <b>7일 뒤</b> 복습</li>
-            <li>• <b>5단계</b>: 정답 시 <b>14일 뒤</b> 복습</li>
-            <li>• <b>완 료</b>: 5단계 통과 시 장기 기억 전환 (마스터)</li>
-            <li class="text-rose-500 font-bold">• ⚠️ 퀴즈에서 오답("기억 안 남") 클릭 시 즉시 1단계로 리셋!</li>
+            <li>• <b>1단계</b>: 등록 후 <b>10분 뒤</b> 복습</li>
+            <li>• <b>2단계</b>: <b>1일 뒤</b> | <b>3단계</b>: <b>3일 뒤</b> | <b>4단계</b>: <b>7일 뒤</b> | <b>5단계</b>: <b>14일 뒤</b></li>
+            <li class="text-rose-500 font-bold">• ⚠️ 오답("기억 안 남") 시 즉시 1단계로 리셋!</li>
           </ul>
         </div>
 
-        <!-- 2. AI 기능 -->
         <div>
           <h4 class="font-bold text-sm text-indigo-900 mb-1 flex items-center">
             <span class="bg-indigo-100 text-indigo-700 rounded-full w-5 h-5 flex items-center justify-center text-[11px] mr-1.5">2</span>
-            ✨ Gemini AI 자동 생성 기능
+            ✨ Gemini AI 자동 생성
           </h4>
-          <p class="text-slate-600">
-            <b>[단어 추가]</b> 탭에서 영어 단어 입력 후 <b>[✨ AI 예문/유의어 자동생성]</b> 버튼을 누르면 AI가 단어 문맥에 맞는 <b>자연스러운 예문, 한글 번역, 유의어</b>를 자동으로 완성해 줍니다.
-          </p>
+          <p class="text-slate-600">단어 입력 후 <b>[✨ AI 자동생성]</b> 버튼을 누르면 AI가 맞춤형 영어 예문, 번역, 유의어를 생성해 드립니다.</p>
         </div>
 
-        <!-- 3. 개인화 사용자 ID -->
         <div>
           <h4 class="font-bold text-sm text-indigo-900 mb-1 flex items-center">
             <span class="bg-indigo-100 text-indigo-700 rounded-full w-5 h-5 flex items-center justify-center text-[11px] mr-1.5">3</span>
-            👤 개인화 서비스 (고유 사용자 ID)
+            👤 개인 고유 ID 관리
           </h4>
-          <p class="text-slate-600 mb-1.5">
-            접속 기기별로 고유한 <b>사용자 ID</b>가 부여되어 하나의 구글 시트 백엔드 상에서 자신만의 단어장이 안전하게 개별 저장됩니다.
-          </p>
-          <div class="bg-indigo-50 p-2.5 rounded-lg border border-indigo-100 flex justify-between items-center">
-            <span>현재 내 고유 ID: <b id="manual-user-id" class="text-indigo-700 font-mono">user_xxx</b></span>
-            <button onclick="copyUserId()" class="text-[11px] bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700">ID 복사</button>
-          </div>
+          <p class="text-slate-600">접속 시 기기별 고유 사용자 ID가 자동 생성되어 구글 스프레드시트 상에 본인 데이터만 독립 보관됩니다.</p>
         </div>
-
-        <!-- 4. PWA 모바일 앱 설치 -->
-        <div>
-          <h4 class="font-bold text-sm text-indigo-900 mb-1 flex items-center">
-            <span class="bg-indigo-100 text-indigo-700 rounded-full w-5 h-5 flex items-center justify-center text-[11px] mr-1.5">4</span>
-            📱 스마트폰 앱(PWA) 설치 방법
-          </h4>
-          <p class="text-slate-600">
-            상단 헤더의 <b>[📱 앱 설치]</b> 버튼을 누르거나 모바일 브라우저 메뉴의 <i>'홈 화면에 추가'</i>를 누르면 스마트폰 전용 앱처럼 사용할 수 있습니다.
-          </p>
-        </div>
-
       </div>
 
-      <!-- 하단 닫기 -->
       <div class="bg-slate-50 p-3 border-t border-slate-100 flex justify-end">
-        <button onclick="toggleManualModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs">
-          확인했습니다
+        <button onclick="toggleManualModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs">확인했습니다</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚙️ API 및 Gemini Key 설정 모달 -->
+  <div id="api-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center">
+          <i class="fa-solid fa-gear text-indigo-600 mr-2"></i> API 및 백엔드 설정
+        </h3>
+        <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
+
+      <form onsubmit="saveApiSettings(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Google Apps Script 웹 앱 URL</label>
+          <input type="url" id="input-api-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <p class="text-[10px] text-slate-400 mt-1">코드 내 DEFAULT_API_URL이 설정된 경우 자동 적용됩니다.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Gemini API Key (보안 보관)</label>
+          <input type="password" id="input-gemini-key" placeholder="Google AI Studio 발급 API 키 입력" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <p class="text-[10px] text-slate-400 mt-1">키는 깃허브 코드에 저장되지 않고 사용자 브라우저에만 저장되어 안전합니다.</p>
+        </div>
+
+        <div class="pt-2 flex space-x-2">
+          <button type="button" onclick="toggleApiModal()" class="flex-1 bg-slate-100 text-slate-600 text-xs font-semibold py-2.5 rounded-xl">취소</button>
+          <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl shadow">저장하기</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -317,7 +324,7 @@
     </div>
   </div>
 
-  <!-- 토스트 메시지 -->
+  <!-- 알림 토스트 -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
 
   <!-- 로딩 오버레이 -->
@@ -326,15 +333,16 @@
     <p id="loading-text" class="text-xs font-semibold text-indigo-900">처리 중...</p>
   </div>
 
-  <!-- JavaScript 애플리케이션 로직 -->
   <script>
     // =========================================================================
-    // ⚙️ [개발자 설정] API URL 및 GEMINI KEY를 아래 큰따옴표 안에 직접 넣으세요!
+    // ⚙️ [필수 설정] 구글 앱스 스크립트(GAS) 배포 URL 설정 주석
+    // 1단계에서 배포하신 Web App URL을 아래 큰따옴표("") 안에 직접 붙여넣으세요!
+    // 예시: const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycb.../exec";
     // =========================================================================
-    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbzpinsDxYISzkLqzSUDohJJ8z7dE88s1qO4OQEUN7tZ8wu6S0-GrYfgoaytSAbXJS_chg/exec";  // 예: https://script.google.com/macros/s/.../exec
-    const GEMINI_API_KEY = "AQ.Ab8RN6JozocxrjH4Toh0wSo6jqdargAv1PxlGMRzQbkwOQ_WyA";   // 예: AI Studio에서 발급받은 Gemini API 키
+    const DEFAULT_API_URL = ""; 
 
-    // 전역 상태 변수
+    let apiUrl = "";
+    let geminiApiKey = "";
     let userId = "";
     let wordList = [];
     let currentQuizQueue = [];
@@ -343,53 +351,70 @@
     let deferredPrompt = null;
 
     // =========================================================================
-    // 👤 사용자 고유 ID 자동 생성 및 관리 (개인화)
+    // 👤 사용자 고유 ID 및 설정 초기화
     // =========================================================================
-    function initUserId() {
-      let savedId = localStorage.getItem('ebbinghaus_user_id');
-      if (!savedId) {
-        // user_랜덤8자리 문자열 생성
-        savedId = 'user_' + Math.random().toString(36).substring(2, 10);
-        localStorage.setItem('ebbinghaus_user_id', savedId);
+    function initUserSession() {
+      let savedUserId = localStorage.getItem('ebbinghaus_user_id');
+      if (!savedUserId) {
+        savedUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('ebbinghaus_user_id', savedUserId);
       }
-      userId = savedId;
+      userId = savedUserId;
       document.getElementById('user-id-display').innerText = userId;
-      document.getElementById('manual-user-id').innerText = userId;
     }
 
-    function copyUserId() {
-      navigator.clipboard.writeText(userId);
-      showToast('사용자 ID가 클립보드에 복사되었습니다.', 'success');
+    function loadSavedSettings() {
+      const storedUrl = localStorage.getItem('ebbinghaus_api_url');
+      apiUrl = storedUrl || DEFAULT_API_URL;
+      geminiApiKey = localStorage.getItem('ebbinghaus_gemini_key') || "";
+
+      document.getElementById('input-api-url').value = apiUrl;
+      document.getElementById('input-gemini-key').value = geminiApiKey;
+
+      if (!apiUrl) {
+        document.getElementById('api-missing-warning').classList.remove('hidden');
+      } else {
+        document.getElementById('api-missing-warning').classList.add('hidden');
+      }
+    }
+
+    function toggleApiModal() {
+      document.getElementById('api-modal').classList.toggle('hidden');
+    }
+
+    function saveApiSettings(e) {
+      e.preventDefault();
+      const newUrl = document.getElementById('input-api-url').value.trim();
+      const newKey = document.getElementById('input-gemini-key').value.trim();
+
+      if (newUrl) {
+        apiUrl = newUrl;
+        localStorage.setItem('ebbinghaus_api_url', apiUrl);
+      }
+      geminiApiKey = newKey;
+      localStorage.setItem('ebbinghaus_gemini_key', geminiApiKey);
+
+      toggleApiModal();
+      showToast('API 설정이 완료되었습니다!', 'success');
+      loadSavedSettings();
+      if (apiUrl) loadWords();
+    }
+
+    function toggleManualModal() {
+      document.getElementById('manual-modal').classList.toggle('hidden');
     }
 
     // =========================================================================
-    // 📱 PWA 매니페스트 및 서비스 워커 동적 등록
+    // 📱 PWA 지원
     // =========================================================================
     const swCode = `
-      const CACHE_NAME = 'ebbinghaus-vocab-v2';
-      const ASSETS = [
-        './',
-        'https://cdn.tailwindcss.com',
-        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
-      ];
-
-      self.addEventListener('install', (e) => {
-        e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
-      });
-
-      self.addEventListener('activate', (e) => {
-        e.waitUntil(
-          caches.keys().then((keys) => Promise.all(
-            keys.map((key) => { if (key !== CACHE_NAME) return caches.delete(key); })
-          )).then(() => self.clients.claim())
-        );
-      });
-
+      const CACHE_NAME = 'ebbinghaus-vocab-v5';
+      const ASSETS = ['./', 'https://cdn.tailwindcss.com', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'];
+      self.addEventListener('install', (e) => e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())));
+      self.addEventListener('activate', (e) => e.waitUntil(caches.keys().then((keys) => Promise.all(keys.map((k) => { if (k !== CACHE_NAME) return caches.delete(k); }))).then(() => self.clients.claim())));
       self.addEventListener('fetch', (e) => {
-        if (e.request.url.includes('script.google.com') || e.request.url.includes('generativelanguage.googleapis.com')) {
-          return;
-        }
-        e.respondWith(caches.match(e.request).then((cached) => cached || fetch(e.request)));
+        if (e.request.url.includes('script.google.com') || e.request.url.includes('generativelanguage.googleapis.com')) return;
+        e.respondWith(caches.match(e.request).then((c) => c || fetch(e.request)));
       });
     `;
 
@@ -401,30 +426,16 @@
         display: "standalone",
         background_color: "#4f46e5",
         theme_color: "#4f46e5",
-        icons: [{
-          src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%234f46e5'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50'>🧠</text></svg>",
-          sizes: "192x192 512x512",
-          type: "image/svg+xml"
-        }]
+        icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%234f46e5'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50'>🧠</text></svg>", sizes: "192x192 512x512", type: "image/svg+xml" }]
       };
-      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-      document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(manifestBlob));
+      document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/json' })));
 
       if ('serviceWorker' in navigator) {
-        const swBlob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-          .catch(err => console.log('Service Worker failed:', err));
+        navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }))).catch(err => console.log(err));
       }
 
-      window.addEventListener('online', updateOnlineStatus);
-      window.addEventListener('offline', updateOnlineStatus);
-      updateOnlineStatus();
-    }
-
-    function updateOnlineStatus() {
-      const offlineWarning = document.getElementById('offline-warning');
-      if (!navigator.onLine) offlineWarning.classList.remove('hidden');
-      else offlineWarning.classList.add('hidden');
+      window.addEventListener('online', () => document.getElementById('offline-warning').classList.add('hidden'));
+      window.addEventListener('offline', () => document.getElementById('offline-warning').classList.remove('hidden'));
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -436,65 +447,15 @@
     function installPWA() {
       if (!deferredPrompt) return;
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((result) => {
-        if (result.outcome === 'accepted') showToast('앱 설치가 진행됩니다!', 'success');
+      deferredPrompt.userChoice.then((res) => {
+        if (res.outcome === 'accepted') showToast('앱 설치가 완료되었습니다!', 'success');
         deferredPrompt = null;
         document.getElementById('btn-pwa-install').classList.add('hidden');
       });
     }
 
     // =========================================================================
-    // 📖 모달 및 토스트 UI 컨트롤
-    // =========================================================================
-    function toggleManualModal() {
-      const modal = document.getElementById('manual-modal');
-      modal.classList.toggle('hidden');
-    }
-
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      
-      let bgColor = 'bg-slate-800';
-      let icon = 'fa-circle-info';
-      if (type === 'success') { bgColor = 'bg-emerald-600'; icon = 'fa-circle-check'; }
-      if (type === 'error') { bgColor = 'bg-rose-600'; icon = 'fa-circle-exclamation'; }
-
-      toast.className = `${bgColor} text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2 transition-all transform translate-y-2 opacity-0 pointer-events-auto`;
-      toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
-      
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
-
-    function showLoading(show, message = '데이터 처리 중...') {
-      const spinner = document.getElementById('loading-spinner');
-      document.getElementById('loading-text').innerText = message;
-      if (show) spinner.classList.remove('hidden');
-      else spinner.classList.add('hidden');
-    }
-
-    function switchTab(tabName) {
-      ['quiz', 'add', 'list'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        document.getElementById(`tab-${t}-btn`).classList.remove('text-indigo-600', 'border-indigo-600');
-        document.getElementById(`tab-${t}-btn`).classList.add('text-slate-500', 'border-transparent');
-      });
-
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-      document.getElementById(`tab-${tabName}-btn`).classList.add('text-indigo-600', 'border-indigo-600');
-      document.getElementById(`tab-${tabName}-btn`).classList.remove('text-slate-500', 'border-transparent');
-
-      if (tabName === 'quiz') setupQuizQueue();
-      if (tabName === 'list') renderWordList();
-    }
-
-    // =========================================================================
-    // 🤖 Gemini AI 자동 생성 (API KEY 직접 연동)
+    // 🤖 Gemini AI 자동 생성 (설정 모달 팝업 연동)
     // =========================================================================
     async function generateAIContent() {
       const word = document.getElementById('input-word').value.trim();
@@ -504,12 +465,19 @@
         showToast('먼저 영어 단어를 입력해 주세요.', 'error');
         return;
       }
+      
+      // Gemini API 키가 없을 경우 모달창을 띄워 입력을 유도 (안전한 저장 방식)
+      if (!geminiApiKey) {
+        showToast('Gemini API 키가 설정되지 않았습니다. API 키를 입력해 주세요.', 'info');
+        toggleApiModal();
+        return;
+      }
 
       showLoading(true, '✨ AI 예문 및 유의어 생성 중...');
 
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
-        const prompt = `Act as an expert English language teacher. For the English word "${word}" (Korean meaning: "${meaning || 'auto-infer'}"), generate a helpful example sentence with its Korean translation, and 2-3 synonyms.`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`;
+        const prompt = `Act as an expert English teacher. For the word "${word}" (${meaning || 'auto-infer'}), generate an example sentence with Korean translation and 2-3 synonyms.`;
 
         const response = await fetch(geminiUrl, {
           method: 'POST',
@@ -520,18 +488,12 @@
               responseMimeType: "application/json",
               responseSchema: {
                 type: "OBJECT",
-                properties: {
-                  example: { type: "STRING" },
-                  exampleMeaning: { type: "STRING" },
-                  synonyms: { type: "STRING" }
-                },
+                properties: { example: { type: "STRING" }, exampleMeaning: { type: "STRING" }, synonyms: { type: "STRING" } },
                 propertyOrdering: ["example", "exampleMeaning", "synonyms"]
               }
             }
           })
         });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const result = await response.json();
         const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -541,38 +503,31 @@
           if (data.example) document.getElementById('input-example').value = data.example;
           if (data.exampleMeaning) document.getElementById('input-example-meaning').value = data.exampleMeaning;
           if (data.synonyms) document.getElementById('input-synonyms').value = data.synonyms;
-
-          showToast('AI 예문 및 유의어가 자동 입력되었습니다!', 'success');
+          showToast('AI 정보가 정상적으로 생성되었습니다!', 'success');
         }
       } catch (err) {
-        console.error(err);
-        showToast('AI 생성 실패: GEMINI_API_KEY를 확인해 주세요.', 'error');
+        showToast('AI 생성 실패: Gemini API 키를 다시 확인해 주세요.', 'error');
       } finally {
         showLoading(false);
       }
     }
 
     // =========================================================================
-    // 📡 백엔드 통신 (userId 포함 연동)
+    // 📡 백엔드 통신 및 데이터 로드
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
-      initUserId();
       initPWA();
-
-      if (!DEFAULT_API_URL) {
-        document.getElementById('api-missing-warning').classList.remove('hidden');
-      } else {
-        loadWords();
-      }
+      initUserSession();
+      loadSavedSettings();
+      if (apiUrl) loadWords();
     });
 
-    // GET: 사용자 ID별 단어 목록 조회
     async function loadWords() {
-      if (!DEFAULT_API_URL) return;
-      showLoading(true, '내 단어장 불러오는 중...');
+      if (!apiUrl) return;
+      showLoading(true, '내 단어 데이터 불러오는 중...');
 
       try {
-        const fetchUrl = `${DEFAULT_API_URL}?userId=${encodeURIComponent(userId)}`;
+        const fetchUrl = `${apiUrl}?userId=${encodeURIComponent(userId)}`;
         const response = await fetch(fetchUrl);
         const result = await response.json();
 
@@ -582,21 +537,20 @@
           setupQuizQueue();
           renderWordList();
         } else {
-          showToast('로드 실패: ' + result.message, 'error');
+          showToast('데이터 조회 실패: ' + result.message, 'error');
         }
       } catch (err) {
-        console.error(err);
-        showToast('백엔드 통신 오류가 발생했습니다.', 'error');
+        showToast('백엔드 통신 중 오류가 발생했습니다.', 'error');
       } finally {
         showLoading(false);
       }
     }
 
-    // POST: 단어 추가 (userId 전송)
     async function handleAddWord(e) {
       e.preventDefault();
-      if (!DEFAULT_API_URL) {
-        showToast('DEFAULT_API_URL을 먼저 코드에 입력해 주세요.', 'error');
+      if (!apiUrl) {
+        showToast('Google Apps Script URL을 먼저 설정해 주세요.', 'error');
+        toggleApiModal();
         return;
       }
 
@@ -613,19 +567,16 @@
       showLoading(true, '단어 저장 중...');
 
       try {
-        const response = await fetch(DEFAULT_API_URL, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
+        const response = await fetch(apiUrl, { method: 'POST', body: JSON.stringify(payload) });
         const result = await response.json();
 
         if (result.status === 'success') {
           document.getElementById('add-word-form').reset();
-          showToast('단어가 등록되었습니다! (1단계 복습 지정)', 'success');
+          showToast('단어가 추가되었습니다! (1단계/10분 후 복습)', 'success');
           await loadWords();
           switchTab('quiz');
         } else {
-          showToast('등록 실패: ' + result.message, 'error');
+          showToast('저장 실패: ' + result.message, 'error');
         }
       } catch (err) {
         showToast('오류 발생: ' + err.toString(), 'error');
@@ -634,13 +585,9 @@
       }
     }
 
-    // 복습 퀴즈 세팅
     function setupQuizQueue() {
       const now = new Date();
-      currentQuizQueue = wordList.filter(item => {
-        if (item.stage >= 6) return false;
-        return new Date(item.nextReview) <= now;
-      });
+      currentQuizQueue = wordList.filter(item => item.stage < 6 && new Date(item.nextReview) <= now);
 
       const badge = document.getElementById('quiz-badge');
       if (currentQuizQueue.length > 0) {
@@ -695,30 +642,23 @@
       document.getElementById('flashcard').classList.toggle('flipped');
     }
 
-    // POST: 퀴즈 결과 제출
     async function submitResult(isCorrect) {
       if (currentQuizIndex >= currentQuizQueue.length) return;
       const currentItem = currentQuizQueue[currentQuizIndex];
       showLoading(true);
 
       try {
-        const response = await fetch(DEFAULT_API_URL, {
+        const response = await fetch(apiUrl, {
           method: 'POST',
-          body: JSON.stringify({
-            userId: userId,
-            action: 'updateResult',
-            id: currentItem.id,
-            isCorrect: isCorrect
-          })
+          body: JSON.stringify({ userId: userId, action: 'updateResult', id: currentItem.id, isCorrect: isCorrect })
         });
-
         const result = await response.json();
         if (result.status === 'success') {
           currentQuizIndex++;
-          showToast(isCorrect ? '기억 성공! 단계 상승' : '1단계로 리셋되었습니다.', isCorrect ? 'success' : 'info');
+          showToast(isCorrect ? '기억 성공! 단계가 올라갑니다.' : '1단계로 리셋되었습니다.', isCorrect ? 'success' : 'info');
           await loadWords();
         } else {
-          showToast('실패: ' + result.message, 'error');
+          showToast('처리 실패: ' + result.message, 'error');
         }
       } catch (err) {
         showToast('오류 발생: ' + err.toString(), 'error');
@@ -727,7 +667,6 @@
       }
     }
 
-    // 삭제 모달 & 실행
     function requestDeleteWord(id) {
       pendingDeleteId = id;
       document.getElementById('btn-confirm-delete').onclick = () => executeDeleteWord();
@@ -746,15 +685,10 @@
       showLoading(true);
 
       try {
-        const response = await fetch(DEFAULT_API_URL, {
+        const response = await fetch(apiUrl, {
           method: 'POST',
-          body: JSON.stringify({
-            userId: userId,
-            action: 'deleteWord',
-            id: targetId
-          })
+          body: JSON.stringify({ userId: userId, action: 'deleteWord', id: targetId })
         });
-
         const result = await response.json();
         if (result.status === 'success') {
           showToast('단어가 삭제되었습니다.', 'success');
@@ -769,13 +703,12 @@
       }
     }
 
-    // 전체 단어장 렌더링
     function renderWordList() {
       const container = document.getElementById('word-list-container');
       container.innerHTML = '';
 
       if (wordList.length === 0) {
-        container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-400 text-xs">저장된 단어가 없습니다. [단어 추가] 탭에서 새 단어를 등록해 보세요!</div>`;
+        container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-400 text-xs">등록된 단어가 없습니다. [단어 추가] 탭에서 첫 단어를 등록해 보세요!</div>`;
         return;
       }
 
@@ -783,26 +716,10 @@
       wordList.forEach(item => {
         const nextReviewDate = new Date(item.nextReview);
         const isDue = nextReviewDate <= now && item.stage < 6;
-        
         let stageBadge = `<span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full font-bold">${item.stage}단계</span>`;
-        if (item.stage >= 6) {
-          stageBadge = `<span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-bold">암기 완료</span>`;
-        }
+        if (item.stage >= 6) stageBadge = `<span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-bold">암기 완료</span>`;
 
         let timeStr = item.stage >= 6 ? '복습 완료' : (isDue ? '🔥 지금 복습 필요!' : `${Math.round((nextReviewDate - now) / (1000 * 60))}분 후 복습`);
-
-        const exampleHtml = item.example ? `
-          <div class="mt-2 text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
-            <p class="font-medium text-slate-700 italic">"${escapeHtml(item.example)}"</p>
-            <p class="text-slate-400 text-[11px]">${escapeHtml(item.exampleMeaning || '')}</p>
-          </div>
-        ` : '';
-
-        const synonymsHtml = item.synonyms ? `
-          <span class="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded ml-1.5">
-            🏷️ ${escapeHtml(item.synonyms)}
-          </span>
-        ` : '';
 
         container.innerHTML += `
           <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
@@ -818,9 +735,9 @@
               </div>
               <p class="text-xs font-semibold text-slate-600">
                 ${escapeHtml(item.meaning)}
-                ${synonymsHtml}
+                ${item.synonyms ? `<span class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded ml-1.5">🏷️ ${escapeHtml(item.synonyms)}</span>` : ''}
               </p>
-              ${exampleHtml}
+              ${item.example ? `<div class="mt-2 text-xs bg-slate-50 p-2 rounded-lg border border-slate-100"><p class="font-medium text-slate-700 italic">"${escapeHtml(item.example)}"</p><p class="text-slate-400 text-[11px]">${escapeHtml(item.exampleMeaning || '')}</p></div>` : ''}
             </div>
 
             <div class="text-[11px] text-slate-400 flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
@@ -830,6 +747,46 @@
           </div>
         `;
       });
+    }
+
+    function switchTab(tabName) {
+      ['quiz', 'add', 'list'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}-btn`).classList.remove('text-indigo-600', 'border-indigo-600');
+        document.getElementById(`tab-${t}-btn`).classList.add('text-slate-500', 'border-transparent');
+      });
+
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabName}-btn`).classList.add('text-indigo-600', 'border-indigo-600');
+      document.getElementById(`tab-${tabName}-btn`).classList.remove('text-slate-500', 'border-transparent');
+
+      if (tabName === 'quiz') setupQuizQueue();
+      if (tabName === 'list') renderWordList();
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      let bgColor = 'bg-slate-800', icon = 'fa-circle-info';
+      if (type === 'success') { bgColor = 'bg-emerald-600'; icon = 'fa-circle-check'; }
+      if (type === 'error') { bgColor = 'bg-rose-600'; icon = 'fa-circle-exclamation'; }
+
+      toast.className = `${bgColor} text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2 transition-all transform translate-y-2 opacity-0 pointer-events-auto`;
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+      
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function showLoading(show, message = '데이터 처리 중...') {
+      const spinner = document.getElementById('loading-spinner');
+      document.getElementById('loading-text').innerText = message;
+      if (show) spinner.classList.remove('hidden');
+      else spinner.classList.add('hidden');
     }
 
     function escapeHtml(str) {
